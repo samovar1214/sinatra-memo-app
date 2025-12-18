@@ -1,0 +1,6 @@
+<a href="/memos/new">＋ 追加</a>
+<ul>
+  <% @items.each do |item| %>
+    <li><a href="/memos/<%= item[:id] %>"><%= h(item[:title]) %></a></li>
+  <% end %>
+</ul>
