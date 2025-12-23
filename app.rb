@@ -12,17 +12,17 @@ helpers do
   end
 end
 
-def load_items
+def load_memos
   File.write(DATA_FILE, JSON.pretty_generate([])) unless File.exist?(DATA_FILE)
   JSON.parse(File.read(DATA_FILE), symbolize_names: true)
 end
 
-def save_items(items)
-  File.write(DATA_FILE, JSON.pretty_generate(items))
+def save_memos(memos)
+  File.write(DATA_FILE, JSON.pretty_generate(memos))
 end
 
-def find_item(items, id)
-  items.find { |item| item[:id] == id }
+def find_memo(memos, id)
+  memos.find { |memo| memo[:id] == id }
 end
 
 get '/' do
@@ -30,7 +30,7 @@ get '/' do
 end
 
 get '/memos' do
-  @items = load_items
+  @memos = load_memos
   erb :index
 end
 
@@ -39,43 +39,43 @@ get '/memos/new' do
 end
 
 post '/memos' do
-  items = load_items
-  new_id = items.empty? ? 1 : items.last[:id] + 1
+  memos = load_memos
+  new_id = memos.empty? ? 1 : memos.last[:id] + 1
 
-  items << {
+  memos << {
     id: new_id,
     title: params[:title],
     body: params[:body]
   }
 
-  save_items(items)
+  save_memos(memos)
   redirect '/memos'
 end
 
 get '/memos/:id' do
-  @item = find_item(load_items, params[:id].to_i)
+  @memo = find_memo(load_memos, params[:id].to_i)
   erb :show
 end
 
 get '/memos/:id/edit' do
-  @item = find_item(load_items, params[:id].to_i)
+  @memo = find_memo(load_memos, params[:id].to_i)
   erb :edit
 end
 
 patch '/memos/:id' do
-  items = load_items
-  item = find_item(items, params[:id].to_i)
+  memos = load_memos
+  memo = find_memo(memos, params[:id].to_i)
 
-  item[:title] = params[:title]
-  item[:body] = params[:body]
+  memo[:title] = params[:title]
+  memo[:body] = params[:body]
 
-  save_items(items)
+  save_memos(memos)
   redirect "/memos/#{params[:id]}"
 end
 
 delete '/memos/:id' do
-  items = load_items.reject { |item| item[:id] == params[:id].to_i }
-  save_items(items)
+  memos = load_memos.reject { |memo| memo[:id] == params[:id].to_i }
+  save_memos(memos)
   redirect '/memos'
 end
 
