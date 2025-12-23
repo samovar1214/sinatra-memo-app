@@ -21,8 +21,10 @@ def save_memos(memos)
   File.write(DATA_FILE, JSON.pretty_generate(memos))
 end
 
-def find_memo(memos, id)
-  memos.find { |memo| memo[:id] == id }
+def find_memo(id)
+  memos = load_memos
+  memo  = memos.find { |m| m[:id] == id }
+  [memos, memo]
 end
 
 get '/' do
@@ -53,18 +55,17 @@ post '/memos' do
 end
 
 get '/memos/:id' do
-  @memo = find_memo(load_memos, params[:id].to_i)
+  _memos, @memo = find_memo(params[:id].to_i)
   erb :show
 end
 
 get '/memos/:id/edit' do
-  @memo = find_memo(load_memos, params[:id].to_i)
+  _memos, @memo = find_memo(params[:id].to_i)
   erb :edit
 end
 
 patch '/memos/:id' do
-  memos = load_memos
-  memo = find_memo(memos, params[:id].to_i)
+  memos, memo = find_memo(params[:id].to_i)
 
   memo[:title] = params[:title]
   memo[:body] = params[:body]
@@ -74,7 +75,8 @@ patch '/memos/:id' do
 end
 
 delete '/memos/:id' do
-  memos = load_memos.reject { |memo| memo[:id] == params[:id].to_i }
+  memos, memo = find_memo(params[:id].to_i)
+  memos.delete(memo)
   save_memos(memos)
   redirect '/memos'
 end
