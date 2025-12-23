@@ -13,7 +13,7 @@ helpers do
 end
 
 def load_memos
-  File.write(DATA_FILE, JSON.pretty_generate([])) unless File.exist?(DATA_FILE)
+  File.write(DATA_FILE, JSON.generate([])) unless File.exist?(DATA_FILE)
   JSON.parse(File.read(DATA_FILE), symbolize_names: true)
 end
 
