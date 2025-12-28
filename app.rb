@@ -2,9 +2,10 @@
 
 require 'sinatra'
 require 'sinatra/reloader'
-require 'json'
+require 'pg'
 
-DATA_FILE = 'items.json'
+MEMOS ||= PG.connect(dbname: 'sinatra_memo_app')
+MEMOS.exec('CREATE TABLE IF NOT EXISTS memos (id SERIAL PRIMARY KEY, title TEXT NOT NULL, body TEXT NOT NULL)')
 
 helpers do
   def h(text)
@@ -13,18 +14,24 @@ helpers do
 end
 
 def load_memos
-  File.write(DATA_FILE, JSON.generate([])) unless File.exist?(DATA_FILE)
-  JSON.parse(File.read(DATA_FILE), symbolize_names: true)
+  MEMOS.exec('SELECT * FROM memos')
 end
 
-def save_memos(memos)
-  File.write(DATA_FILE, JSON.pretty_generate(memos))
+def create_memo(title, body)
+  MEMOS.exec_params('INSERT INTO memos (title, body) VALUES ($1, $2)', [title, body])
 end
 
 def find_memo(id)
-  memos = load_memos
-  memo  = memos.find { |m| m[:id] == id }
-  [memos, memo]
+  memos = MEMOS.exec_params('SELECT * FROM memos WHERE id = $1', [id])
+  memos[0]
+end
+
+def update_memo(id, title, body)
+  MEMOS.exec_params('UPDATE memos SET title = $1, body = $2 WHERE id =$3', [title, body, id])
+end
+
+def delete_memo(id)
+  MEMOS.exec_params('DELETE FROM memos WHERE id = $1', [id])
 end
 
 get '/' do
@@ -41,43 +48,27 @@ get '/memos/new' do
 end
 
 post '/memos' do
-  memos = load_memos
-  new_id = memos.empty? ? 1 : memos.last[:id] + 1
-
-  memos << {
-    id: new_id,
-    title: params[:title],
-    body: params[:body]
-  }
-
-  save_memos(memos)
+  create_memo(params[:title], params[:body])
   redirect '/memos'
 end
 
 get '/memos/:id' do
-  _memos, @memo = find_memo(params[:id].to_i)
+  @memo = find_memo(params[:id])
   erb :show
 end
 
 get '/memos/:id/edit' do
-  _memos, @memo = find_memo(params[:id].to_i)
+  @memo = find_memo(params[:id])
   erb :edit
 end
 
 patch '/memos/:id' do
-  memos, memo = find_memo(params[:id].to_i)
-
-  memo[:title] = params[:title]
-  memo[:body] = params[:body]
-
-  save_memos(memos)
+  update_memo(params[:id], params[:title], params[:body])
   redirect "/memos/#{params[:id]}"
 end
 
 delete '/memos/:id' do
-  memos, memo = find_memo(params[:id].to_i)
-  memos.delete(memo)
-  save_memos(memos)
+  delete_memo(params[:id])
   redirect '/memos'
 end
 

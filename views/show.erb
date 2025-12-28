@@ -1,13 +1,13 @@
 <a href="/memos">← 戻る</a>
 <div class="memo-detail">
-  <h2><%= h(@memo[:title]) %></h2>
-  <p><%= h(@memo[:body]) %></p>
+  <h2><%= h(@memo['title']) %></h2>
+  <p><%= h(@memo['body']) %></p>
 </div>
 
 <div class="button-row">
-  <a href="/memos/<%= @memo[:id] %>/edit">変更</a>
+  <a href="/memos/<%= @memo['id'] %>/edit">変更</a>
 
-  <form method="POST" action="/memos/<%= @memo[:id] %>">
+  <form method="POST" action="/memos/<%= @memo['id'] %>">
     <input type="hidden" name="_method" value="DELETE">
     <input type="submit" value="削除">
   </form>
