@@ -17,7 +17,7 @@ helpers do
 end
 
 def load_memos
-  conn.exec('SELECT * FROM memos')
+  conn.exec('SELECT * FROM memos').map { |memo| memo.transform_keys(&:to_sym) }
 end
 
 def create_memo(title, body)
@@ -25,8 +25,7 @@ def create_memo(title, body)
 end
 
 def find_memo(id)
-  memos = conn.exec_params('SELECT * FROM memos WHERE id = $1', [id])
-  memos[0]
+  conn.exec_params('SELECT * FROM memos WHERE id = $1', [id]).first.transform_keys(&:to_sym)
 end
 
 def update_memo(id, title, body)
