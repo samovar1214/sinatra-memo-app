@@ -4,8 +4,11 @@ require 'sinatra'
 require 'sinatra/reloader'
 require 'pg'
 
-MEMOS ||= PG.connect(dbname: 'sinatra_memo_app')
-MEMOS.exec('CREATE TABLE IF NOT EXISTS memos (id SERIAL PRIMARY KEY, title TEXT NOT NULL, body TEXT NOT NULL)')
+def conn
+  @conn ||= PG.connect(dbname: 'sinatra_memo_app')
+end
+
+conn.exec('CREATE TABLE IF NOT EXISTS memos (id SERIAL PRIMARY KEY, title TEXT NOT NULL, body TEXT NOT NULL)')
 
 helpers do
   def h(text)
@@ -14,24 +17,24 @@ helpers do
 end
 
 def load_memos
-  MEMOS.exec('SELECT * FROM memos')
+  conn.exec('SELECT * FROM memos')
 end
 
 def create_memo(title, body)
-  MEMOS.exec_params('INSERT INTO memos (title, body) VALUES ($1, $2)', [title, body])
+  conn.exec_params('INSERT INTO memos (title, body) VALUES ($1, $2)', [title, body])
 end
 
 def find_memo(id)
-  memos = MEMOS.exec_params('SELECT * FROM memos WHERE id = $1', [id])
+  memos = conn.exec_params('SELECT * FROM memos WHERE id = $1', [id])
   memos[0]
 end
 
 def update_memo(id, title, body)
-  MEMOS.exec_params('UPDATE memos SET title = $1, body = $2 WHERE id =$3', [title, body, id])
+  conn.exec_params('UPDATE memos SET title = $1, body = $2 WHERE id =$3', [title, body, id])
 end
 
 def delete_memo(id)
-  MEMOS.exec_params('DELETE FROM memos WHERE id = $1', [id])
+  conn.exec_params('DELETE FROM memos WHERE id = $1', [id])
 end
 
 get '/' do
